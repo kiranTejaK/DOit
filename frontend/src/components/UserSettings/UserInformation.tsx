@@ -39,6 +39,7 @@ const UserInformation = () => {
     defaultValues: {
       full_name: currentUser?.full_name,
       email: currentUser?.email,
+      job_title: currentUser?.job_title,
     },
   })
 
@@ -95,6 +96,25 @@ const UserInformation = () => {
               maxW="sm"
             >
               {currentUser?.full_name || "N/A"}
+            </Text>
+          )}
+        </Field>
+        <Field label="Job Title" mt={4}>
+          {editMode ? (
+            <Input
+              {...register("job_title", { maxLength: 255 })}
+              type="text"
+              size="md"
+            />
+          ) : (
+            <Text
+              fontSize="md"
+              py={2}
+              color={!currentUser?.job_title ? "gray" : "inherit"}
+              truncate
+              maxW="sm"
+            >
+              {currentUser?.job_title || "N/A"}
             </Text>
           )}
         </Field>

@@ -4,3 +4,10 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI, type OpenAPIConfig } from './core/OpenAPI';
 export * from './sdk.gen';
 export * from './types.gen';
+export * from './WorkspacesService';
+export * from './ProjectsService';
+export * from './TasksService';
+export * from './SectionsService';
+export * from './CommentsService';
+export { AttachmentsService } from "./AttachmentsService"
+export { InvitationsService } from "./InvitationsService"

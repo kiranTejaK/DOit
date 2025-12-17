@@ -66,6 +66,8 @@ export type UserCreate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    job_title?: (string | null);
+    avatar_url?: (string | null);
     password: string;
 };
 
@@ -74,6 +76,8 @@ export type UserPublic = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    job_title?: (string | null);
+    avatar_url?: (string | null);
     id: string;
 };
 
@@ -93,12 +97,16 @@ export type UserUpdate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    job_title?: (string | null);
+    avatar_url?: (string | null);
     password?: (string | null);
 };
 
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    job_title?: (string | null);
+    avatar_url?: (string | null);
 };
 
 export type ValidationError = {
@@ -232,3 +240,375 @@ export type UtilsTestEmailData = {
 export type UtilsTestEmailResponse = (Message);
 
 export type UtilsHealthCheckResponse = (boolean);
+
+export type WorkspaceCreate = {
+    name: string;
+    description?: (string | null);
+};
+
+export type WorkspaceUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+};
+
+export type WorkspacePublic = {
+    name: string;
+    description?: (string | null);
+    id: string;
+    owner_id: string;
+};
+
+export type WorkspacesPublic = {
+    data: Array<WorkspacePublic>;
+    count: number;
+};
+
+export type WorkspacesReadWorkspacesData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type WorkspacesReadWorkspacesResponse = (WorkspacesPublic);
+
+export type WorkspacesCreateWorkspaceData = {
+    requestBody: WorkspaceCreate;
+};
+
+export type WorkspacesCreateWorkspaceResponse = (WorkspacePublic);
+
+export type WorkspacesReadWorkspaceData = {
+    id: string;
+    requestBody?: any; // Avoiding strict check or just ignore
+};
+
+export type WorkspacesReadWorkspaceResponse = (WorkspacePublic);
+
+export type WorkspacesUpdateWorkspaceData = {
+    id: string;
+    requestBody: WorkspaceUpdate;
+};
+
+export type WorkspacesUpdateWorkspaceResponse = (WorkspacePublic);
+
+export type WorkspacesDeleteWorkspaceData = {
+    id: string;
+};
+
+export type WorkspacesDeleteWorkspaceResponse = (Message);
+
+export type ProjectCreate = {
+    workspace_id: string;
+    name: string;
+    description?: (string | null);
+    color?: (string | null);
+    icon?: (string | null);
+    is_private?: boolean;
+};
+
+export type ProjectUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+    color?: (string | null);
+    icon?: (string | null);
+    is_private?: (boolean | null);
+};
+
+export type ProjectPublic = {
+    name: string;
+    description?: (string | null);
+    color?: (string | null);
+    icon?: (string | null);
+    is_private?: boolean;
+    id: string;
+    workspace_id: string;
+    owner_id: string;
+};
+
+export type ProjectsPublic = {
+    data: Array<ProjectPublic>;
+    count: number;
+};
+
+export type ProjectsReadProjectsData = {
+    limit?: number;
+    skip?: number;
+    workspaceId?: (string | null);
+};
+
+export type ProjectsReadProjectsResponse = (ProjectsPublic);
+
+export type ProjectsCreateProjectData = {
+    requestBody: ProjectCreate;
+};
+
+export type ProjectsCreateProjectResponse = (ProjectPublic);
+
+export type ProjectsReadProjectData = {
+    id: string;
+};
+
+export type ProjectsReadProjectResponse = (ProjectPublic);
+
+export type ProjectsUpdateProjectData = {
+    id: string;
+    requestBody: ProjectUpdate;
+};
+
+export type ProjectsUpdateProjectResponse = (ProjectPublic);
+
+export type ProjectsDeleteProjectData = {
+    id: string;
+};
+
+export type ProjectsDeleteProjectResponse = (Message);
+
+export type TaskCreate = {
+    project_id: string;
+    section_id?: (string | null);
+    assignee_id?: (string | null);
+    title: string;
+    description?: (string | null);
+    status?: string;
+    priority?: string;
+    due_date?: (string | null);
+};
+
+export type TaskUpdate = {
+    title?: (string | null);
+    description?: (string | null);
+    status?: (string | null);
+    priority?: (string | null);
+    due_date?: (string | null);
+    section_id?: (string | null);
+    assignee_id?: (string | null);
+};
+
+export type TaskPublic = {
+    title: string;
+    description?: (string | null);
+    status: string;
+    priority: string;
+    due_date?: (string | null);
+    id: string;
+    project_id: string;
+    section_id?: (string | null);
+    owner_id: string;
+    assignee_id?: (string | null);
+};
+
+export type TasksPublic = {
+    data: Array<TaskPublic>;
+    count: number;
+};
+
+export type TasksReadTasksData = {
+    limit?: number;
+    skip?: number;
+    projectId?: (string | null);
+    assigneeId?: (string | null);
+};
+
+
+export type TasksReadTasksResponse = (TasksPublicWithProject);
+
+
+export type TasksCreateTaskData = {
+    requestBody: TaskCreate;
+};
+
+export type TasksCreateTaskResponse = (TaskPublic);
+
+export type TasksReadTaskData = {
+    id: string;
+};
+
+export type TasksReadTaskResponse = (TaskPublic);
+
+export type TasksUpdateTaskData = {
+    id: string;
+    requestBody: TaskUpdate;
+};
+
+export type TasksUpdateTaskResponse = (TaskPublic);
+
+export type TasksDeleteTaskData = {
+    id: string;
+};
+
+export type TasksDeleteTaskResponse = (Message);
+
+export type SectionCreate = {
+    title: string;
+    order?: number;
+    project_id: string;
+};
+
+export type SectionUpdate = {
+    title?: (string | null);
+    order?: (number | null);
+};
+
+export type SectionPublic = {
+    title: string;
+    order: number;
+    id: string;
+    project_id: string;
+};
+
+export type SectionsPublic = {
+    data: Array<SectionPublic>;
+    count: number;
+};
+
+export type SectionsReadSectionsData = {
+    limit?: number;
+    skip?: number;
+    projectId: string;
+};
+
+export type SectionsReadSectionsResponse = (SectionsPublic);
+
+export type SectionsCreateSectionData = {
+    requestBody: SectionCreate;
+};
+
+export type SectionsCreateSectionResponse = (SectionPublic);
+
+export type SectionsUpdateSectionData = {
+    id: string;
+    requestBody: SectionUpdate;
+};
+
+export type SectionsUpdateSectionResponse = (SectionPublic);
+
+export type SectionsDeleteSectionData = {
+    id: string;
+};
+
+export type SectionsDeleteSectionResponse = (Message);
+
+export type CommentCreate = {
+    content: string;
+    task_id: string;
+};
+
+export type CommentUpdate = {
+    content?: (string | null);
+};
+
+export type CommentPublic = {
+    content: string;
+    id: string;
+    task_id: string;
+    user_id: string;
+    created_at: string;
+};
+
+export type CommentsPublic = {
+    data: Array<CommentPublic>;
+    count: number;
+};
+
+export type CommentsReadCommentsData = {
+    limit?: number;
+    skip?: number;
+    taskId: string;
+};
+
+export type CommentsReadCommentsResponse = (CommentsPublic);
+
+export type CommentsCreateCommentData = {
+    requestBody: CommentCreate;
+};
+
+export type CommentsCreateCommentResponse = (CommentPublic);
+
+export type CommentsDeleteCommentData = {
+    id: string;
+};
+
+export type CommentsDeleteCommentResponse = (Message);
+
+export type AttachmentBase = {
+    file_name: string;
+    file_path: string;
+    file_type: string;
+    file_size: number;
+};
+
+export type AttachmentPublic = {
+    file_name: string;
+    file_path: string;
+    file_type: string;
+    file_size: number;
+    id: string;
+    task_id: string;
+    user_id: string;
+    created_at: string;
+};
+
+export type InvitationCreate = {
+    email: string;
+    role?: string;
+    status?: string;
+    workspace_id: string;
+};
+
+export type InvitationPublic = {
+    email: string;
+    role?: string;
+    status?: string;
+    id: string;
+    workspace_id: string;
+    inviter_id: string;
+    expires_at: string;
+    created_at: string;
+};
+
+export type AttachmentsPublic = {
+    data: Array<AttachmentPublic>;
+    count: number;
+};
+
+export type AttachmentsReadAttachmentsData = {
+    limit?: number;
+    skip?: number;
+    taskId: string;
+};
+
+export type AttachmentsReadAttachmentsResponse = (AttachmentsPublic);
+
+export type AttachmentsCreateAttachmentData = {
+    taskId: string;
+    formData: {
+        file: Blob | File;
+    };
+};
+
+export type AttachmentsCreateAttachmentResponse = (AttachmentPublic);
+
+export type AttachmentsDeleteAttachmentData = {
+    id: string;
+};
+
+
+export type AttachmentsDeleteAttachmentResponse = (Message);
+
+export type WorkspaceMemberPublic = UserPublic & {
+    role: string;
+};
+
+export type WorkspaceMembersPublic = {
+    data: Array<WorkspaceMemberPublic>;
+    count: number;
+};
+
+export type TaskPublicWithProject = TaskPublic & {
+    project_name: string;
+    project_color?: string | null;
+};
+
+export type TasksPublicWithProject = {
+    data: Array<TaskPublicWithProject>;
+    count: number;
+};

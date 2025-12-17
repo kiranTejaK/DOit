@@ -81,10 +81,10 @@ services:
     volumes:
       - ./backend/htmlcov:/app/htmlcov
     environment:
-      SMTP_HOST: "mailcatcher"
-      SMTP_PORT: "1025"
-      SMTP_TLS: "false"
-      EMAILS_FROM_EMAIL: "noreply@example.com"
+      # SMTP_HOST: "mailcatcher"
+      # SMTP_PORT: "1025"
+      # SMTP_TLS: "false"
+      # EMAILS_FROM_EMAIL: "noreply@example.com"
 
   mailcatcher:
     image: schickling/mailcatcher

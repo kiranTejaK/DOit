@@ -55,6 +55,14 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
+
+    S3_BUCKET: str | None = None
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
+    AWS_REGION: str = "us-east-1"
 
     @computed_field  # type: ignore[prop-decorator]
     @property

@@ -4,7 +4,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-import emails  # type: ignore
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+# import emails  # type: ignore
 import jwt
 from jinja2 import Template
 from jwt.exceptions import InvalidTokenError
@@ -37,22 +40,58 @@ def send_email(
     html_content: str = "",
 ) -> None:
     assert settings.emails_enabled, "no provided configuration for email variables"
-    message = emails.Message(
-        subject=subject,
-        html=html_content,
-        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
-    )
-    smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
-    elif settings.SMTP_SSL:
-        smtp_options["ssl"] = True
-    if settings.SMTP_USER:
-        smtp_options["user"] = settings.SMTP_USER
-    if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
-    response = message.send(to=email_to, smtp=smtp_options)
-    logger.info(f"send email result: {response}")
+    
+    # OLD ERROR-PRONE CODE (COMMENTED OUT)
+    # message = emails.Message(
+    #     subject=subject,
+    #     html=html_content,
+    #     mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
+    # )
+    # smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
+    # if settings.SMTP_TLS:
+    #     smtp_options["tls"] = True
+    # elif settings.SMTP_SSL:
+    #     smtp_options["ssl"] = True
+    # if settings.SMTP_USER:
+    #     smtp_options["user"] = settings.SMTP_USER
+    #     smtp_options["password"] = settings.SMTP_PASSWORD
+    # response = message.send(to=email_to, smtp=smtp_options)
+    # logger.info(f"send email result: {response}")
+
+    # NEW IMPLEMENTATION USING SMTPLIB
+    try:
+        logger.info(f"Preparing to send email to {email_to}")
+        logger.info(f"SMTP Config: Host={settings.SMTP_HOST}, Port={settings.SMTP_PORT}, TLS={settings.SMTP_TLS}, User={settings.SMTP_USER}")
+        
+        msg = MIMEMultipart()
+        msg['From'] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
+        msg['To'] = email_to
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_content, 'html'))
+
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+            server.set_debuglevel(1) # Enable verbose SMTP logging (will show in docker logs)
+            logger.info("Connected to SMTP server")
+            server.ehlo()
+            
+            if settings.SMTP_TLS:
+                logger.info("Starting TLS")
+                server.starttls()
+                server.ehlo()
+            else:
+                logger.info("Skipping TLS")
+            
+            if settings.SMTP_USER and settings.SMTP_PASSWORD:
+                logger.info("Attempting login")
+                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+            
+            server.send_message(msg)
+            logger.info("Email sent successfully")
+            
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
 
 
 def generate_test_email(email_to: str) -> EmailData:
