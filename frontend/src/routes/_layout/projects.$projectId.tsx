@@ -75,7 +75,7 @@ function ProjectDetails() {
         
         {/* Kanban Board Container */}
         {tasks.length === 0 ? (
-          <Box p={8} textAlign="center" bg="gray.50" rounded="md">
+          <Box p={8} textAlign="center" bg="bg.muted" rounded="md">
             <Text mb={4} color="gray.500">No tasks in this project yet.</Text>
             <AddTask projectId={projectId} />
           </Box>

@@ -17,10 +17,18 @@ export const system = createSystem(defaultConfig, {
     },
   },
   theme: {
-    tokens: {
+    semanticTokens: {
       colors: {
         ui: {
-          main: { value: "#009688" },
+          main: { value: { base: "#FF4500", _dark: "#FF4500" } },
+        },
+        bg: {
+          main: { value: { base: "#F8F9FA", _dark: "#111111" } },
+          sub: { value: { base: "#FFFFFF", _dark: "#1A1A1A" } },
+          muted: { value: { base: "#F3F4F6", _dark: "#262626" } },
+        },
+        border: {
+          main: { value: { base: "#E5E7EB", _dark: "#333333" } },
         },
       },
     },

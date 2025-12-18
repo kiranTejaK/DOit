@@ -182,8 +182,12 @@ class ProjectPublic(ProjectBase):
     owner_id: uuid.UUID
 
 
+class ProjectPublicWithWorkspace(ProjectPublic):
+    workspace_name: str
+
+
 class ProjectsPublic(SQLModel):
-    data: list[ProjectPublic]
+    data: list[ProjectPublicWithWorkspace]
     count: int
 
 

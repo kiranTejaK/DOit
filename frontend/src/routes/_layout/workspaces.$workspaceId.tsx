@@ -31,6 +31,12 @@ function WorkspaceDetails() {
     queryFn: () => ProjectsService.readProjects({ workspaceId, limit: 100 }),
   })
 
+  // Fetch Members
+  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
+      queryKey: ["workspaceMembers", workspaceId],
+      queryFn: () => WorkspacesService.readWorkspaceMembers({ id: workspaceId }),
+  })
+
   if (isLoadingWorkspace || isLoadingProjects) {
     return <Container p={4}>Loading...</Container>
   }
@@ -41,12 +47,6 @@ function WorkspaceDetails() {
 
 
   const projects = projectsData?.data || []
-
-  // Fetch Members
-  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
-      queryKey: ["workspaceMembers", workspaceId],
-      queryFn: () => WorkspacesService.readWorkspaceMembers({ id: workspaceId }),
-  })
   
   const members = membersData?.data || []
 
@@ -65,7 +65,7 @@ function WorkspaceDetails() {
       <Heading size="md" mb={4}>Projects</Heading>
 
       {projects.length === 0 ? (
-          <Box p={8} textAlign="center" bg="gray.50" rounded="md" border="1px dashed" borderColor="gray.300" mb={8}>
+          <Box p={8} textAlign="center" bg="bg.muted" rounded="md" border="1px dashed" borderColor="border.main" mb={8}>
               <Text mb={4}>No projects in this workspace yet.</Text>
               <Text color="gray.500" fontSize="sm">Create a project to get started.</Text>
           </Box>
@@ -81,12 +81,12 @@ function WorkspaceDetails() {
                 >
                     <Box
                         p={6}
-                        bg="white"
+                        bg="bg.sub"
                         rounded="lg"
                         shadow="sm"
                         border="1px solid"
-                        borderColor="gray.200"
-                        _hover={{ shadow: "md", borderColor: "teal.500", transform: "translateY(-2px)" }}
+                        borderColor="border.main"
+                        _hover={{ shadow: "md", borderColor: "ui.main", transform: "translateY(-2px)" }}
                         transition="all 0.2s"
                         h="full"
                     >
@@ -111,14 +111,14 @@ function WorkspaceDetails() {
       )}
       
       <Heading size="md" mb={4}>Members</Heading>
-      <Box overflowX="auto" bg="white" rounded="md" borderWidth="1px" mb={8}>
+      <Box overflowX="auto" bg="bg.sub" rounded="md" borderWidth="1px" mb={8}>
             {isLoadingMembers ? (
                 <Box p={4}>Loading members...</Box>
             ) : members.length === 0 ? (
                 <Box p={4}>No members found.</Box>
             ) : (
                 <Box as="table" w="full" fontSize="sm">
-                    <Box as="thead" bg="gray.50" borderBottomWidth="1px">
+                    <Box as="thead" bg="bg.muted" borderBottomWidth="1px">
                         <Box as="tr">
                             <Box as="th" p={3} textAlign="left" fontWeight="medium" color="gray.500">Name</Box>
                             <Box as="th" p={3} textAlign="left" fontWeight="medium" color="gray.500">Email</Box>
@@ -127,7 +127,7 @@ function WorkspaceDetails() {
                     </Box>
                     <Box as="tbody" divideY="1px">
                         {members.map((member: any) => (
-                            <Box as="tr" key={member.id} _hover={{ bg: "gray.50" }}>
+                            <Box as="tr" key={member.id} _hover={{ bg: "bg.muted" }}>
                                 <Box as="td" p={3} fontWeight="medium">{member.full_name || "-"}</Box>
                                 <Box as="td" p={3} color="gray.600">{member.email}</Box>
                                 <Box as="td" p={3}>

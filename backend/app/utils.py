@@ -139,6 +139,25 @@ def generate_new_account_email(
     return EmailData(html_content=html_content, subject=subject)
 
 
+def generate_task_assignment_email(
+    email_to: str, task_title: str, project_name: str, workspace_name: str, assignee_name: str
+) -> EmailData:
+    subject = f"[{project_name}] You have been assigned to: {task_title}"
+    context = {
+        "project_name": project_name,
+        "workspace_name": workspace_name,
+        "task_title": task_title,
+        "assignee_name": assignee_name,
+        "email": email_to,
+    }
+    logger.info(f"Generating task assignment email with context: {context}")
+    html_content = render_email_template(
+        template_name="task_assignment.html",
+        context=context,
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+
 def generate_password_reset_token(email: str) -> str:
     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
     now = datetime.now(timezone.utc)

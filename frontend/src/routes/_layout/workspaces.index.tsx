@@ -109,7 +109,7 @@ function WorkspacesTable() {
               <Table.Cell truncate maxW="sm">
                 {/* @ts-ignore */}
                 <Link to="/workspaces/$workspaceId" params={{ workspaceId: workspace.id }}>
-                    <ChakraLink as="span" color="teal.500" fontWeight="bold">
+                    <ChakraLink as="span" color="orange.400" fontWeight="bold">
                         {workspace.name}
                     </ChakraLink>
                 </Link>

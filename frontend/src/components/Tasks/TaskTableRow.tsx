@@ -1,6 +1,7 @@
-import { Badge, Box, Flex, Text, Spinner } from "@chakra-ui/react"
-import { useQuery } from "@tanstack/react-query"
-import { type TaskPublic, UsersService } from "@/client"
+import { Badge, Box, Flex, Text, Spinner, IconButton } from "@chakra-ui/react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { type TaskPublic, UsersService, TasksService } from "@/client"
+import { FiCircle, FiCheckCircle } from "react-icons/fi"
 import TaskDetails from "./TaskDetails"
 
 interface TaskTableRowProps {
@@ -9,6 +10,21 @@ interface TaskTableRowProps {
 }
 
 export default function TaskTableRow({ task, isOverlay }: TaskTableRowProps) {
+  const queryClient = useQueryClient()
+  
+  const updateStatusMutation = useMutation({
+      mutationFn: (status: string) => TasksService.updateTask({ id: task.id, requestBody: { status } }),
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] })
+          queryClient.invalidateQueries({ queryKey: ["projects"] })
+      }
+  })
+
+  const handleToggleStatus = (e: React.MouseEvent) => {
+      e.stopPropagation()
+      const newStatus = task.status === 'done' ? 'todo' : 'done'
+      updateStatusMutation.mutate(newStatus)
+  }
   
   const priorityColors: Record<string, string> = {
       low: "blue",
@@ -26,19 +42,31 @@ export default function TaskTableRow({ task, isOverlay }: TaskTableRowProps) {
   const content = (
     <Flex 
         width="full" 
-        bg={isOverlay ? "white" : "white"} 
+        bg={isOverlay ? "bg.sub" : "bg.sub"} 
         p={3} 
         rounded="md" 
         shadow={isOverlay ? "lg" : "sm"} 
         borderWidth="1px" 
-        borderColor={isOverlay ? "blue.400" : "gray.200"}
+        borderColor={isOverlay ? "ui.main" : "border.main"}
         alignItems="center"
         gap={4}
         cursor="grab"
         _hover={{ shadow: "md" }}
     >
-        {/* Task Name */}
-        <Box flex="2">
+        {/* Task Name & Completion */}
+        <Box flex="2" display="flex" alignItems="center" gap={3}>
+             <IconButton 
+                aria-label="Mark as complete" 
+                variant="ghost" 
+                size="xs" 
+                rounded="full"
+                colorPalette={task.status === 'done' ? 'green' : 'gray'}
+                _hover={{ bg: "bg.muted", color: "green.500" }}
+                onClick={handleToggleStatus}
+                loading={updateStatusMutation.isPending}
+             >
+                {task.status === 'done' ? <FiCheckCircle /> : <FiCircle />}
+             </IconButton>
              <Text fontWeight="medium" lineClamp={1}>{task.title}</Text>
         </Box>
 

@@ -163,13 +163,11 @@ def read_user_by_id(
     Get a specific user by id.
     """
     user = session.get(User, user_id)
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
+    if not user: # Handle user not found case properly too
+         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Allow any authenticated user to read public user info (needed for task assignees)
+    # The response_model=UserPublic filters out sensitive data like hashed_password
     return user
 
 

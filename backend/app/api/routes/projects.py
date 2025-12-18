@@ -1,6 +1,9 @@
 
 import uuid
+import json
 from typing import Any, Optional
+
+from app.core.redis_client import redis_client_sync
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
@@ -12,6 +15,7 @@ from app.models import (
     ProjectCreate,
     ProjectMember,
     ProjectPublic,
+    ProjectPublicWithWorkspace,
     ProjectsPublic,
     ProjectUpdate,
     User,
@@ -33,6 +37,17 @@ def read_projects(
     """
     Retrieve projects. Option filters by workspace_id.
     """
+    # Redis Caching
+    try:
+        cache_key = f"projects:{current_user.id}:{workspace_id or 'all'}:{skip}:{limit}"
+        cached_data = redis_client_sync.get(cache_key)
+        if cached_data:
+            data = json.loads(cached_data)
+            return ProjectsPublic(**data)
+    except Exception as e:
+        # Fallback if redis fails
+        print(f"Redis error: {e}")
+
     if current_user.is_superuser:
         statement = select(Project)
         if workspace_id:
@@ -97,12 +112,27 @@ def read_projects(
                  .distinct()
                  .offset(skip).limit(limit)
              )
-             # Count approximation
              projects = session.exec(statement).all()
-             count = len(projects) # Approximate
+             count = len(projects)
 
+    # Populate workspace_name
+    final_projects = []
+    for p in projects:
+        ws = session.get(Workspace, p.workspace_id)
+        ws_name = ws.name if ws else "Unknown"
+        p_dict = p.model_dump()
+        p_dict["workspace_name"] = ws_name
+        final_projects.append(ProjectPublicWithWorkspace(**p_dict))
 
-    return ProjectsPublic(data=projects, count=count)
+    result = ProjectsPublic(data=final_projects, count=count)
+    
+    # Cache result
+    try:
+        redis_client_sync.setex(cache_key, 30, result.model_dump_json())
+    except Exception as e:
+        print(f"Redis set error: {e}")
+        
+    return result
 
 
 @router.get("/{id}", response_model=ProjectPublic)

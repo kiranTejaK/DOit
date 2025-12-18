@@ -16,8 +16,11 @@ from app.models import (
     TaskPublic,
     TasksPublicWithProject,
     TaskPublicWithProject,
-    TaskUpdate
+    TaskUpdate,
+    User,
+    Workspace,
 )
+from app.utils import generate_task_assignment_email, send_email
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -159,6 +162,25 @@ def create_task(
     session.add(task)
     session.commit()
     session.refresh(task)
+
+    if task.assignee_id:
+        assignee = session.get(User, task.assignee_id)
+        if assignee:
+            workspace = session.get(Workspace, project.workspace_id)
+            workspace_name = workspace.name if workspace else "Unknown Workspace"
+            email_data = generate_task_assignment_email(
+                email_to=assignee.email,
+                task_title=task.title,
+                project_name=project.name,
+                workspace_name=workspace_name,
+                assignee_name=assignee.full_name or assignee.email,
+            )
+            send_email(
+                email_to=assignee.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
+            
     return task
 
 
@@ -186,11 +208,34 @@ def update_task(
              if not member:
                   raise HTTPException(status_code=400, detail="Not enough permissions")
 
+    # Capture old assignee before update
+    old_assignee_id = task.assignee_id
+
     update_dict = task_in.model_dump(exclude_unset=True)
     task.sqlmodel_update(update_dict)
     session.add(task)
     session.commit()
     session.refresh(task)
+
+    if task.assignee_id and task.assignee_id != old_assignee_id:
+        assignee = session.get(User, task.assignee_id)
+        if assignee:
+            project = session.get(Project, task.project_id)
+            workspace = session.get(Workspace, project.workspace_id)
+            workspace_name = workspace.name if workspace else "Unknown Workspace"
+            email_data = generate_task_assignment_email(
+                email_to=assignee.email,
+                task_title=task.title,
+                project_name=project.name,
+                workspace_name=workspace_name,
+                assignee_name=assignee.full_name or assignee.email,
+            )
+            send_email(
+                email_to=assignee.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
+
     return task
 
 

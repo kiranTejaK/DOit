@@ -22,11 +22,11 @@ export default function KanbanColumn({ id, title, tasks }: KanbanColumnProps) {
       ref={setNodeRef}
       minH="auto"
       w="full"
-      bg="gray.50"
+      bg="bg.muted"
       p={3}
       rounded="md"
       borderWidth="1px"
-      borderColor="gray.200"
+      borderColor="border.main"
     >
       <Flex justify="space-between" mb={2}>
         <Heading size="sm">
@@ -35,7 +35,7 @@ export default function KanbanColumn({ id, title, tasks }: KanbanColumnProps) {
       </Flex>
 
       {/* Table Header */}
-      <Flex w="full" px={3} py={2} mb={2} borderBottomWidth="1px" borderColor="gray.200" color="gray.500" fontSize="xs" fontWeight="bold">
+      <Flex w="full" px={3} py={2} mb={2} borderBottomWidth="1px" borderColor="border.main" color="gray.500" fontSize="xs" fontWeight="bold">
           <Box flex="2">TASK NAME</Box>
           <Box flex="1">ASSIGNED TO</Box>
           <Box flex="1">PRIORITY</Box>

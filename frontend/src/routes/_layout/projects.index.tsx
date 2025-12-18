@@ -101,7 +101,7 @@ function ProjectsTable() {
             <Table.Row key={project.id} opacity={isPlaceholderData ? 0.5 : 1}>
               <Table.Cell truncate maxW="sm">
                 <Link to="/projects/$projectId" params={{ projectId: project.id }} search={{ page: 1 }}>
-                    <ChakraLink as="span" color="teal.500" fontWeight="bold">
+                    <ChakraLink as="span" color="orange.400" fontWeight="bold">
                         {project.name}
                     </ChakraLink>
                 </Link>
@@ -114,7 +114,8 @@ function ProjectsTable() {
                 {project.description || "N/A"}
               </Table.Cell>
                <Table.Cell truncate maxW="sm">
-                {project.workspace_id}
+                {/* @ts-ignore */}
+                {project.workspace_name || project.workspace_id}
               </Table.Cell>
               <Table.Cell truncate maxW="sm">
                 {project.id}

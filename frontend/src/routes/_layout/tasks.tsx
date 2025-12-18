@@ -6,10 +6,13 @@ import {
   Box,
   Badge,
   Flex,
+  IconButton,
+  Text
 } from "@chakra-ui/react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
+import { FiCircle, FiCheckCircle } from "react-icons/fi"
 
 import { TasksService, type TaskPublicWithProject } from "@/client"
 import AddTask from "@/components/Tasks/AddTask"
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/_layout/tasks")({
 
 function MyTasks() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [selectedTask, setSelectedTask] = useState<TaskPublicWithProject | null>(null)
   
   const { data: tasksData, isLoading, isError } = useQuery({
@@ -34,6 +38,21 @@ function MyTasks() {
 
   // Cast to correct type since we updated the service/backend
   const tasks = (tasksData?.data || []) as unknown as TaskPublicWithProject[]
+
+  const updateStatusMutation = useMutation({
+      mutationFn: ({ taskId, status }: { taskId: string, status: string }) => 
+        TasksService.updateTask({ id: taskId, requestBody: { status } }),
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] })
+          queryClient.invalidateQueries({ queryKey: ["projects"] })
+      }
+  })
+
+  const handleToggleStatus = (e: React.MouseEvent, task: TaskPublicWithProject) => {
+      e.stopPropagation()
+      const newStatus = task.status === 'done' ? 'todo' : 'done'
+      updateStatusMutation.mutate({ taskId: task.id, status: newStatus })
+  }
 
   if (isLoading) {
       return <Container p={4}>Loading tasks...</Container>
@@ -48,7 +67,7 @@ function MyTasks() {
       <Heading size="lg" pt={12} pb={8}>
         My Tasks
       </Heading>
-      <Box overflowX="auto" bg="white" rounded="md" borderWidth="1px">
+      <Box overflowX="auto" bg="bg.sub" rounded="md" borderWidth="1px">
         <Table.Root size="sm" variant="outline" striped>
             <Table.Header>
                 <Table.Row>
@@ -69,10 +88,26 @@ function MyTasks() {
                     <Table.Row 
                         key={task.id} 
                         cursor="pointer" 
-                        _hover={{ bg: "gray.50" }}
+                        _hover={{ bg: "gray.50", _dark: { bg: "whiteAlpha.100" } }}
                         onClick={() => setSelectedTask(task)}
                     >
-                        <Table.Cell fontWeight="medium">{task.title}</Table.Cell>
+                        <Table.Cell fontWeight="medium">
+                             <Flex align="center" gap={3}>
+                                <IconButton 
+                                    aria-label="Mark as complete" 
+                                    variant="ghost" 
+                                    size="xs" 
+                                    rounded="full"
+                                    colorPalette={task.status === 'done' ? 'green' : 'gray'}
+                                    _hover={{ bg: "bg.muted", color: "green.500" }}
+                                    onClick={(e) => handleToggleStatus(e, task)}
+                                    // loading={updateStatusMutation.isPending} // Global loading state might be weird here per row, better optimisitc but for now ok
+                                >
+                                    {task.status === 'done' ? <FiCheckCircle /> : <FiCircle />}
+                                </IconButton>
+                                <Text lineClamp={1}>{task.title}</Text>
+                             </Flex>
+                        </Table.Cell>
                         <Table.Cell>
                             <Flex align="center" gap={2}>
                                 {task.project_color && (
