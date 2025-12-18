@@ -44,9 +44,9 @@ def read_projects(
         if cached_data:
             data = json.loads(cached_data)
             return ProjectsPublic(**data)
-    except Exception as e:
+    except Exception:
         # Fallback if redis fails
-        print(f"Redis error: {e}")
+        pass
 
     if current_user.is_superuser:
         statement = select(Project)
@@ -129,8 +129,8 @@ def read_projects(
     # Cache result
     try:
         redis_client_sync.setex(cache_key, 30, result.model_dump_json())
-    except Exception as e:
-        print(f"Redis set error: {e}")
+    except Exception:
+        pass
         
     return result
 
