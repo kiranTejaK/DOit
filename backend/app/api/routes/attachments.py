@@ -2,7 +2,7 @@
 import os
 import shutil
 import uuid
-from typing import Any
+from typing import Any, Optional
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, UploadFile, File
@@ -64,6 +64,7 @@ def create_attachment(
     session: SessionDep, 
     current_user: CurrentUser, 
     task_id: uuid.UUID,
+    comment_id: Optional[uuid.UUID] = None,
     file: UploadFile = File(...)
 ) -> Any:
     """
@@ -108,6 +109,7 @@ def create_attachment(
 
     attachment = Attachment(
         task_id=task_id,
+        comment_id=comment_id,
         user_id=current_user.id,
         file_name=file.filename,
         file_path=file_path_str,

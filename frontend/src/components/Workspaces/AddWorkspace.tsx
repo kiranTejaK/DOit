@@ -128,7 +128,7 @@ const AddWorkspace = () => {
               variant="solid"
               type="submit"
               disabled={!isValid}
-              loading={isSubmitting}
+              loading={mutation.isPending || isSubmitting}
             >
               Save
             </Button>

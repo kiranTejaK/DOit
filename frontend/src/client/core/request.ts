@@ -150,7 +150,7 @@ export const getHeaders = async <T>(config: OpenAPIConfig, options: ApiRequestOp
 	}
 
 	if (options.body !== undefined) {
-		if (options.mediaType) {
+		if (options.mediaType && options.mediaType !== 'multipart/form-data') {
 			headers['Content-Type'] = options.mediaType;
 		} else if (isBlob(options.body)) {
 			headers['Content-Type'] = options.body.type || 'application/octet-stream';
@@ -160,7 +160,7 @@ export const getHeaders = async <T>(config: OpenAPIConfig, options: ApiRequestOp
 			headers['Content-Type'] = 'application/json';
 		}
 	} else if (options.formData !== undefined) {
-		if (options.mediaType) {
+		if (options.mediaType && options.mediaType !== 'multipart/form-data') {
 			headers['Content-Type'] = options.mediaType;
 		}
 	}

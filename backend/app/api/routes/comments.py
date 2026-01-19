@@ -7,6 +7,7 @@ from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    Attachment,
     Comment,
     CommentCreate,
     CommentPublic,
@@ -16,6 +17,7 @@ from app.models import (
     Project,
     ProjectMember,
     Task,
+    User,
 )
 
 router = APIRouter(prefix="/comments", tags=["comments"])
@@ -44,13 +46,19 @@ def read_comments(
             if not member and project.is_private:
                 raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    statement = select(Comment).where(Comment.task_id == task_id).order_by(Comment.created_at)
+    statement = select(Comment, User).join(User).where(Comment.task_id == task_id).order_by(Comment.created_at)
     count_statement = select(func.count()).select_from(statement.subquery())
     count = session.exec(count_statement).one()
     statement = statement.offset(skip).limit(limit)
-    comments = session.exec(statement).all()
+    results = session.exec(statement).all()
+    
+    comments_public = []
+    for comment, user in results:
+        item = CommentPublic.model_validate(comment)
+        item.user_full_name = user.full_name or user.email
+        comments_public.append(item)
 
-    return CommentsPublic(data=comments, count=count)
+    return CommentsPublic(data=comments_public, count=count)
 
 
 @router.post("/", response_model=CommentPublic)
@@ -76,6 +84,17 @@ def create_comment(
     session.add(comment)
     session.commit()
     session.refresh(comment)
+    
+    # Link attachments
+    if comment_in.attachment_ids:
+        for att_id in comment_in.attachment_ids:
+            attachment = session.get(Attachment, att_id)
+            if attachment:
+                # Optional: Check if attachment belongs to task
+                if attachment.task_id == comment.task_id:
+                     attachment.comment_id = comment.id
+                     session.add(attachment)
+        session.commit()
     
     # TODO: Log activity (Task Commented)
     

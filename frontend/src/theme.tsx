@@ -20,7 +20,7 @@ export const system = createSystem(defaultConfig, {
     semanticTokens: {
       colors: {
         ui: {
-          main: { value: { base: "#FF4500", _dark: "#FF4500" } },
+          main: { value: { base: "#fb923c", _dark: "#fb923c" } },
         },
         bg: {
           main: { value: { base: "#F8F9FA", _dark: "#111111" } },

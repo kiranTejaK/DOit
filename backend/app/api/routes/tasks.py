@@ -61,16 +61,6 @@ def read_tasks(
         # User must be a member of the project to see tasks in it.
         # If no project_id, shows tasks from all projects user is member of.
         
-        statement = select(Task, Project).join(Project, Task.project_id == Project.id)
-        
-        if assignee_id:
-             # Check if filtering for self (My Tasks)
-             # If filtering for others, need check if they are in same projects?
-             # For simplicity, if assignee_id is NOT current_user, block unless superuser (handled above)
-             # Actually, seeing teammates' tasks is fine in many apps.
-             # But let's restrict to projects user is member of first.
-             statement = statement.where(Task.assignee_id == assignee_id)
-
         if project_id:
              # Check project membership
             project = session.get(Project, project_id)
@@ -85,6 +75,7 @@ def read_tasks(
                       # TODO: Expand to Workspace members if project is Public
                       raise HTTPException(status_code=400, detail="Not a member of this project")
 
+            statement = select(Task, Project).join(Project, Task.project_id == Project.id)
             statement = statement.where(Task.project_id == project_id)
         else:
              # Filter by projects user is member/owner of
@@ -100,6 +91,10 @@ def read_tasks(
                  )
                  .distinct()
              )
+        
+        # Apply filters
+        if assignee_id:
+             statement = statement.where(Task.assignee_id == assignee_id)
 
         count_statement = select(func.count()).select_from(statement.subquery())
         # count = session.exec(count_statement).one() # Error with distinct sometimes?
@@ -159,6 +154,17 @@ def create_task(
                  raise HTTPException(status_code=400, detail="Not a member of this project")
 
     task = Task.model_validate(task_in, update={"owner_id": current_user.id})
+    
+    # Validate assignee membership
+    if task.assignee_id:
+        # Assignee must be member of project
+        pm = session.get(ProjectMember, (task.project_id, task.assignee_id))
+        if not pm:
+             # Check if assignee is owner?
+             target_project = session.get(Project, task.project_id)
+             if target_project.owner_id != task.assignee_id:
+                  raise HTTPException(status_code=400, detail="Assignee is not a member of this project")
+
     session.add(task)
     session.commit()
     session.refresh(task)
@@ -213,6 +219,15 @@ def update_task(
 
     update_dict = task_in.model_dump(exclude_unset=True)
     task.sqlmodel_update(update_dict)
+    
+    # Validate new assignee membership
+    if task.assignee_id and task.assignee_id != old_assignee_id:
+        pm = session.get(ProjectMember, (task.project_id, task.assignee_id))
+        if not pm:
+             target_project = session.get(Project, task.project_id)
+             if target_project.owner_id != task.assignee_id:
+                  raise HTTPException(status_code=400, detail="Assignee is not a member of this project")
+
     session.add(task)
     session.commit()
     session.refresh(task)

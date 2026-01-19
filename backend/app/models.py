@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Any, Optional
 from datetime import datetime
 
 from pydantic import EmailStr
@@ -281,6 +281,7 @@ class CommentBase(SQLModel):
 
 class CommentCreate(CommentBase):
     task_id: uuid.UUID
+    attachment_ids: list[uuid.UUID] | None = None
 
 
 class CommentUpdate(CommentBase):
@@ -294,6 +295,7 @@ class Comment(CommentBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     task: Task = Relationship(back_populates="comments")
+    attachments: list["Attachment"] = Relationship(back_populates="comment", cascade_delete=True)
     # user: User = Relationship(sa_relationship_kwargs={"foreign_keys": "Comment.user_id"})
 
 
@@ -302,6 +304,7 @@ class CommentPublic(CommentBase):
     task_id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
+    user_full_name: str | None = None
 
 
 class CommentsPublic(SQLModel):
@@ -342,15 +345,18 @@ class AttachmentBase(SQLModel):
 class Attachment(AttachmentBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     task_id: uuid.UUID = Field(foreign_key="task.id", nullable=False)
+    comment_id: uuid.UUID | None = Field(foreign_key="comment.id", default=None, nullable=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     task: Task = Relationship(back_populates="attachments")
+    comment: "Comment" = Relationship(back_populates="attachments")
 
 class AttachmentPublic(AttachmentBase):
     id: uuid.UUID
     task_id: uuid.UUID
     user_id: uuid.UUID
+    comment_id: uuid.UUID | None = None
     created_at: datetime
 
 

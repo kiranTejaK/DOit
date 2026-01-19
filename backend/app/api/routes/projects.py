@@ -6,7 +6,7 @@ from typing import Any, Optional
 from app.core.redis_client import redis_client_sync
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import func, select
+from sqlmodel import func, select, SQLModel
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -225,6 +225,89 @@ def update_project(
     session.refresh(project)
     return project
 
+
+
+class ProjectMemberCreate(SQLModel):
+    user_id: uuid.UUID
+    role: str = "member"
+
+@router.post("/{id}/members", response_model=Message)
+def add_project_member(
+    *, session: SessionDep, current_user: CurrentUser, id: uuid.UUID, member_in: ProjectMemberCreate
+) -> Any:
+    """
+    Add a member to a project.
+    """
+    project = session.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Permission check: Only project owner (or admins?) can add members
+    if not current_user.is_superuser:
+        if project.owner_id != current_user.id:
+             raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Check if user exists
+    user = session.get(User, member_in.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if user is in workspace
+    wm = session.get(WorkspaceMember, (project.workspace_id, member_in.user_id))
+    if not wm:
+        raise HTTPException(status_code=400, detail="User must be a member of the workspace first")
+
+    # Check if already member
+    pm = session.get(ProjectMember, (id, member_in.user_id))
+    if pm:
+        raise HTTPException(status_code=400, detail="User already in project")
+
+    member = ProjectMember(project_id=id, user_id=member_in.user_id, role=member_in.role)
+    session.add(member)
+    session.commit()
+    return Message(message="Member added successfully")
+
+
+@router.get("/{id}/members", response_model=Any) # Using Any/custom helper response for MVP
+def read_project_members(
+    *, session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Any:
+    """
+    Get project members.
+    """
+    project = session.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Permission check
+    if not current_user.is_superuser:
+         # Members can see other members? Yes.
+         # Public project? Yes.
+         if project.owner_id != current_user.id:
+             pm = session.get(ProjectMember, (id, current_user.id))
+             if not pm and project.is_private:
+                  raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    statement = (
+        select(ProjectMember, User)
+        .join(User, ProjectMember.user_id == User.id)
+        .where(ProjectMember.project_id == id)
+    )
+    results = session.exec(statement).all()
+    
+    # Format response
+    members = []
+    for pm, user in results:
+        members.append({
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "avatar_url": user.avatar_url,
+            "role": pm.role,
+            "project_id": pm.project_id
+        })
+    
+    return {"data": members, "count": len(members)}
 
 @router.delete("/{id}", response_model=Message)
 def delete_project(

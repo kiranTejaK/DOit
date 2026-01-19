@@ -116,7 +116,7 @@ const InviteMember = ({ workspaceId, isOpen, onOpenChange }: InviteMemberProps) 
               variant="solid"
               type="submit"
               disabled={!isValid}
-              loading={isSubmitting}
+              loading={mutation.isPending || isSubmitting}
             >
               Send Invitation
             </Button>

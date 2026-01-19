@@ -87,4 +87,30 @@ export class ProjectsService {
         });
     }
 
+    public static addProjectMember(data: { id: string, requestBody: { user_id: string, role?: string } }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/projects/{id}/members',
+            path: { id: data.id },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error',
+                404: 'Not Found',
+                400: 'Bad Request'
+            }
+        });
+    }
+
+    public static readProjectMembers(data: { id: string }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{id}/members',
+            path: { id: data.id },
+            errors: {
+                404: 'Not Found'
+            }
+        });
+    }
+
 }
