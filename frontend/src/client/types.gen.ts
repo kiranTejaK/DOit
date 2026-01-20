@@ -9,8 +9,18 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type LoginVerifyEmailData = {
+    requestBody: VerifyEmail;
+};
+
+export type LoginVerifyEmailResponse = (Message);
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
+};
+
+export type VerifyEmail = {
+    token: string;
 };
 
 export type ItemCreate = {

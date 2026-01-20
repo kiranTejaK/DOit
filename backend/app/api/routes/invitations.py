@@ -18,7 +18,7 @@ from app.models import (
     Workspace,
     WorkspaceMember,
 )
-from app.utils import send_email
+from app.utils import generate_workspace_invitation_email, send_email
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -95,16 +95,17 @@ def create_invitation(
     # Send email
     if settings.emails_enabled:
         invite_link = f"{settings.FRONTEND_HOST}/accept-invite?token={token}"
-        email_content = f"""
-        You have been invited to join the workspace <b>{workspace.name}</b> on DOit.<br/><br/>
-        Click the link below to accept the invitation:<br/>
-        <a href="{invite_link}">{invite_link}</a><br/><br/>
-        This link will expire in 7 days.
-        """
+        email_data = generate_workspace_invitation_email(
+            email_to=invitation.email,
+            workspace_name=workspace.name,
+            inviter_name=current_user.full_name or current_user.email,
+            inviter_email=current_user.email,
+            link=invite_link
+        )
         send_email(
             email_to=invitation.email,
-            subject=f"Invitation to join {workspace.name} on DOit",
-            html_content=email_content
+            subject=email_data.subject,
+            html_content=email_data.html_content
         )
 
     return invitation

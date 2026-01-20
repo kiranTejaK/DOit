@@ -179,3 +179,69 @@ def verify_password_reset_token(token: str) -> str | None:
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
+
+
+def generate_verification_token(email: str) -> str:
+    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+    now = datetime.now(timezone.utc)
+    expires = now + delta
+    exp = expires.timestamp()
+    encoded_jwt = jwt.encode(
+        {"exp": exp, "nbf": now, "sub": email, "type": "verification"},
+        settings.SECRET_KEY,
+        algorithm=security.ALGORITHM,
+    )
+    return encoded_jwt
+
+
+def verify_verification_token(token: str) -> str | None:
+    try:
+        decoded_token = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        if decoded_token.get("type") != "verification":
+            return None
+        return str(decoded_token["sub"])
+    except InvalidTokenError:
+        return None
+
+
+def generate_account_verification_email(email_to: str, username: str, token: str) -> EmailData:
+    project_name = settings.PROJECT_NAME
+    subject = f"{project_name} - Verify your account"
+    link = f"{settings.FRONTEND_HOST}/verify-email?token={token}"
+    html_content = render_email_template(
+        template_name="account_verification.html",
+        context={
+            "project_name": settings.PROJECT_NAME,
+            "username": username,
+            "email": email_to,
+            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            "link": link,
+            "year": datetime.now().year,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+def generate_workspace_invitation_email(
+    email_to: str,
+    workspace_name: str,
+    inviter_name: str,
+    inviter_email: str,
+    link: str,
+) -> EmailData:
+    project_name = settings.PROJECT_NAME
+    subject = f"Invitation to join {workspace_name} on {project_name}"
+    html_content = render_email_template(
+        template_name="workspace_invitation.html",
+        context={
+            "project_name": settings.PROJECT_NAME,
+            "workspace_name": workspace_name,
+            "inviter_name": inviter_name,
+            "inviter_email": inviter_email,
+            "link": link,
+            "valid_days": 7,
+            "year": datetime.now().year,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
